@@ -1,6 +1,17 @@
 # SPDX-License-Identifier: GPL-2.0
 ifeq ($(CONFIG_OF),y)
 
+#--------------------------------------------
+# Renesas RZ/A Boards
+#--------------------------------------------
+dtb-y += r7s72100-rskrza1_testing.dtb
+
+#--------------------------------------------
+# Custom RZ/A Boards
+# Enter your custom board files below this line (to avoid merge conflicts)
+#--------------------------------------------
+
+
 dtb-$(CONFIG_ARCH_ALPINE) += \
 	alpine-db.dtb
 dtb-$(CONFIG_MACH_ARTPEC6) += \
