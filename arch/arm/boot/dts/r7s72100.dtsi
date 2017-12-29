@@ -29,6 +29,10 @@
 		spi2 = &spi2;
 		spi3 = &spi3;
 		spi4 = &spi4;
+		spi5 = &spibsc0;
+#ifndef CONFIG_RZA1L
+		spi6 = &spibsc1;
+#endif
 	};
 
 	clocks {
@@ -162,11 +166,12 @@
 			#clock-cells = <1>;
 			compatible = "renesas,r7s72100-mstp-clocks", "renesas,cpg-mstp-clocks";
 			reg = <0xfcfe0438 4>;
-			clocks = <&p0_clk>, <&p0_clk>, <&p0_clk>, <&p0_clk>;
+			clocks = <&p0_clk>, <&p0_clk>, <&p0_clk>, <&p0_clk>, <&p1_clk>, <&p1_clk>, <&b_clk>, <&b_clk>;
 			clock-indices = <
 				R7S72100_CLK_I2C0 R7S72100_CLK_I2C1 R7S72100_CLK_I2C2 R7S72100_CLK_I2C3
+				R7S72100_CLK_VDC50 R7S72100_CLK_VDC51 R7S72100_CLK_SPIBSC0 R7S72100_CLK_SPIBSC1
 			>;
-			clock-output-names = "i2c0", "i2c1", "i2c2", "i2c3";
+			clock-output-names = "i2c0", "i2c1", "i2c2", "i2c3", "vdc50", "vdc51", "spibsc0", "spibsc1";
 		};
 
 		mstp10_clks: mstp10_clks@fcfe043c {
@@ -695,4 +700,52 @@
 		power-domains = <&cpg_clocks>;
 		status = "disabled";
 	};
+
+
+	/**** non-upstream drivers ****/
+
+	vdc50: display@fcff7400 {
+		compatible = "renesas,r7s72100-vdc5fb";
+		reg = <0xfcff7400 0x00000700>,
+		      <0xfcff6000 0x00001000>,
+		      <0xfcff7a30 0x00000030>;
+		reg-names = "reg", "clut", "lvds";
+		/* interrupts = (are not used with this driver) */
+		channel = <0>;
+		clocks = <&mstp9_clks R7S72100_CLK_VDC50>;
+		status = "disabled";
+	};
+
+#ifndef CONFIG_RZA1L
+	vdc51: display@fcff9400 {
+		compatible = "renesas,r7s72100-vdc5fb";
+		reg = <0xfcff9400 0x00000700>,
+		      <0xfcff6000 0x00001000>,
+		      <0xfcff7a30 0x00000030>;
+		reg-names = "reg", "clut", "lvds";
+		/* interrupts = (are not used with this driver) */
+		clocks = <&mstp9_clks R7S72100_CLK_VDC51>;
+		channel = <1>;
+		status = "disabled";
+	};
+#endif
+	spibsc0: spi@3fefa000 {
+		compatible = "renesas,r7s72100-spibsc";
+		reg = <0x3fefa000 0x100>;
+		clocks = <&mstp9_clks R7S72100_CLK_SPIBSC0>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "disabled";
+	};
+
+#ifndef CONFIG_RZA1L
+	spibsc1: spi@3fefb000 {
+		compatible = "renesas,r7s72100-spibsc";
+		reg = <0x3fefb000 0x100>;
+		clocks = <&mstp9_clks R7S72100_CLK_SPIBSC1>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "disabled";
+	};
+#endif
 };
