@@ -307,6 +307,18 @@
 	clock-frequency = <100000>;
 };
 
+&usbhost0 {
+	status = "okay";
+	xtal-48mhz;
+};
+
+&usbhost1 {
+	/* NOTE: You MUST enable USB ch0 (host or device) first because
+	   there are some shared registers bits in USB0 that USB1 needs. */
+	status = "okay";
+	xtal-48mhz;
+};
+
 /* RSK LCD: 800x600 LCD */
 /* Pacer TFT LCD Panel, Model gwp0700cnwv04 */
 #if XIP_KERNEL_WITHOUT_EXTERNAL_RAM
