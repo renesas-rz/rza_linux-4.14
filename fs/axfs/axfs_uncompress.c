@@ -28,17 +28,29 @@
 #include <linux/vmalloc.h>
 #include <linux/zlib.h>
 #include <linux/init.h>
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,15)
 #include <linux/mutex.h>
+#else
+#include <linux/rwsem.h>
+#endif
 
 static z_stream stream;
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,15)
 static DEFINE_MUTEX(axfs_uncmp_mutex);
+#else
+static struct rw_semaphore axfs_uncmp_mutex;
+#endif
 
 int axfs_uncompress_block(void *dst, int dstlen, void *src, int srclen)
 {
 	int err;
 	int out;
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,15)
 	mutex_lock(&axfs_uncmp_mutex);
+#else
+	down_write(&axfs_uncmp_mutex);
+#endif
 
 	stream.next_in = src;
 	stream.avail_in = srclen;
@@ -59,13 +71,21 @@ int axfs_uncompress_block(void *dst, int dstlen, void *src, int srclen)
 
 	out = stream.total_out;
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,15)
 	mutex_unlock(&axfs_uncmp_mutex);
+#else
+	up_write(&axfs_uncmp_mutex);
+#endif
 
 	return out;
 
 err:
 
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,15)
 	mutex_unlock(&axfs_uncmp_mutex);
+#else
+	up_write(&axfs_uncmp_mutex);
+#endif
 
 	printk(KERN_ERR "axfs: error %d while decompressing!\n", err);
 	printk(KERN_ERR "%p(%d)->%p(%d)\n", src, srclen, dst, dstlen);
@@ -74,6 +94,10 @@ err:
 
 int __init axfs_uncompress_init(void)
 {
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,15)
+#else
+	init_rwsem(&axfs_uncmp_mutex);
+#endif
 
 	stream.workspace = vmalloc(zlib_inflate_workspacesize());
 	if (!stream.workspace)
