@@ -2,6 +2,7 @@
 #include <linux/delay.h>
 #include <linux/kthread.h>
 #include <linux/clk.h>
+#include <linux/of.h>
 
 /* Pin Function Controller */
 #include "pfc-rza1.c"
