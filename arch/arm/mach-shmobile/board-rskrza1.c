@@ -184,6 +184,9 @@ static int __init rskrza1_init_late(void)
 	 * kernel does not know that we should not power down the QSPI
 	 * interface. Therefore, we will re-enable the clock here which will
 	 * inform the kernel that at least someone is using it.
+	 *
+	 * Another way would have been to add "clk_ignore_unused" to the
+	 * kernel command line and no clocks would get disabled.
 	 */
 	clk = clk_get_sys(NULL,"spibsc0");
 	if (IS_ERR(clk))
