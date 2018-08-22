@@ -565,7 +565,11 @@ static struct snd_soc_dai_link rskrza1_dai = {
 	.cpu_dai_name	= "scux-pcm-audio.0",	/* DAI name of the CPU DAI*/
 	.codec_dai_name	= "max9856-hifi",	/* DAI name within the codec */
 	.platform_name	= "scux-pcm-audio.0",	/* device name */
+#ifdef CONFIG_MACH_STREAMIT
+	.codec_name	= "max9856.1-0010",	/* device name */
+#else
 	.codec_name	= "max9856.3-0010",	/* device name */
+#endif
 	.ops		= &rskrza1_dai_ops,	/* machine stream operations */
 	.init		= rskrza1_dai_init,	/* machine specific init */
 };
