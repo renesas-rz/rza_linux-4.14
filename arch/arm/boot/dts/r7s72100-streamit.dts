@@ -231,6 +231,15 @@
 			<RZA1_PINMUX(7, 4, 6)>;	/* LCD0_CLK */
 	};
 
+	/* Audio ch 0 Pins */
+	audio_pins:  audio0 {
+		pinmux =
+			<RZA1_PINMUX(6, 8, 3)>,		/* SSISCK0 */
+			<RZA1_PINMUX(6, 9, 3)>,		/* SSIWS0 */
+			<RZA1_PINMUX(6, 10, 3)>,	/* SSITxD0 */
+			<RZA1_PINMUX(6, 11, 3)>;	/* SSIRxD0 */
+	};
+
 };
 
 /* High resolution System tick timers */
@@ -272,6 +281,54 @@
 	phy0: ethernet-phy@0 {
 		reg = <0>;
 	};
+};
+
+&dma0  {
+			/*slave id for another device*/
+	slave_id=<	RZA1DMA_SLAVE_SDHI0_TX
+			RZA1DMA_SLAVE_SDHI0_RX
+			RZA1DMA_SLAVE_SDHI1_TX
+			RZA1DMA_SLAVE_SDHI1_RX
+			RZA1DMA_SLAVE_MMCIF_TX
+			RZA1DMA_SLAVE_MMCIF_RX
+			RZA1DMA_SLAVE_PCM_MEM_SSI0
+			RZA1DMA_SLAVE_PCM_MEM_SRC1
+			RZA1DMA_SLAVE_PCM_SSI0_MEM
+			RZA1DMA_SLAVE_PCM_SRC0_MEM>;
+		/* address of slave device*/
+	addr=<	0xe804e030 /*first for SDHI0_TX*/
+		0xe804e030
+		0xe804e830
+		0xe804e830
+		0xe804c834
+		0xe804c834
+		0xe820b018
+		0xe820970c
+		0xe820b01c
+		0xe8209718>;
+		/*channel config (chcfg) for slave device, first for SDHI0_TX*/
+	chcfg=<	0x1 0x0 0x1 0x1 0x1 0x2 0x2 0x0 /*.reqd .loen .hien .lvl .am .sds .dds .tm*/
+		0x0 0x0 0x1 0x1 0x1 0x2 0x2 0x0
+		0x1 0x0 0x1 0x1 0x1 0x2 0x2 0x0
+		0x0 0x0 0x1 0x1 0x1 0x2 0x2 0x0
+		0x1 0x0 0x1 0x1 0x1 0x2 0x2 0x0
+		0x0 0x0 0x1 0x1 0x1 0x2 0x2 0x0
+		0x1 0x0 0x1 0x1 0x1 0x2 0x2 0x0
+		0x1 0x0 0x1 0x1 0x1 0x1 0x1 0x0
+		0x0 0x0 0x1 0x1 0x1 0x2 0x2 0x0
+		0x0 0x0 0x1 0x1 0x1 0x1 0x1 0x0>;
+
+		/*dmas for slave device, first for SDHI0_TX*/
+	dmars=<	0x1 0x30	/*.rid .mid*/
+		0x2 0x30
+		0x1 0x31
+		0x2 0x31
+		0x1 0x32
+		0x2 0x32
+		0x1 0x38
+		0x1 0x41
+		0x2 0x38
+		0x2 0x40>;
 };
 
 /* USB Host ch0 */
@@ -330,6 +387,15 @@
 		compatible = "bosch,bma250";
 			reg = <0x18>;
 			//interrupts = <x x IRQ_TYPE_EDGE_RISING>;	/* not connected */
+	};
+
+	max9856: codec@10 {
+		compatible = "renesas,max9856_codec";
+		#sound-dai-cells = <0>;
+		reg = <0x10>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&audio_pins>;
 	};
 };
 
@@ -410,3 +476,23 @@
 	};
 }; /* LCD end */
 
+/* Audio in/out */
+/* requires
+ * CONFIG_SOUND=y
+ * CONFIG_SND=y
+ * CONFIG_SND_SOC=y
+ * CONFIG_SND_SCUX_RSKRZA1=y
+ * CONFIG_RZA_DMA=y
+ */
+/ {
+	sound_machine: sound@0 {
+		compatible = "renesas,rskrza1_sound_alsa";
+	};
+
+	sound: scux-pcm-audio@e8208000 {
+		compatible = "renesas,rskrza1_scux";
+		reg = <0xe8208000 0x00001778>,
+		      <0xe820b000 0x00002830>;
+		channel = <0>;
+	};
+};
