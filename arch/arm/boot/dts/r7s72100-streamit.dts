@@ -116,6 +116,9 @@
 //	clock-frequency = <13330000>;	/* 13.33MHz */
 //};
 
+&camera_clk {
+	clock-frequency = <27000000>;	/* 27MHz */
+};
 
 /* USB_X1 (remove if not populated) */
 &usb_x1_clk {
@@ -238,6 +241,22 @@
 			<RZA1_PINMUX(6, 9, 3)>,		/* SSIWS0 */
 			<RZA1_PINMUX(6, 10, 3)>,	/* SSITxD0 */
 			<RZA1_PINMUX(6, 11, 3)>;	/* SSIRxD0 */
+	};
+
+	/* CEU Camera Capture pins */
+	vio_pins: vio {
+		/* CEU pins: VIO_D[0-10], VIO_VD, VIO_HD, VIO_CLK */
+		pinmux = <RZA1_PINMUX(4, 0, 2)>, /* VIO_VD */
+			 <RZA1_PINMUX(4, 1, 2)>, /* VIO_HD */
+			 <RZA1_PINMUX(1, 4, 4)>, /* VIO_D0 */
+			 <RZA1_PINMUX(1, 5, 4)>, /* VIO_D1 */
+			 <RZA1_PINMUX(1, 6, 4)>, /* VIO_D2 */
+			 <RZA1_PINMUX(1, 7, 4)>, /* VIO_D3 */
+			 <RZA1_PINMUX(1, 12, 4)>, /* VIO_D4 */
+			 <RZA1_PINMUX(1, 13, 4)>, /* VIO_D5 */
+			 <RZA1_PINMUX(1, 14, 4)>, /* VIO_D6 */
+			 <RZA1_PINMUX(1, 15, 4)>, /* VIO_D7 */
+			 <RZA1_PINMUX(3, 14, 2)>; /* VIO_CLK */
 	};
 
 };
@@ -397,6 +416,22 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&audio_pins>;
 	};
+
+	ov7740: camera@21 {
+		compatible = "ovti,ov7740";
+		reg = <0x21>;
+
+		clocks = <&camera_clk>;
+		clock-names = "xvclk";
+		assigned-clocks = <&camera_clk>;
+		assigned-clock-rates = <27000000>;
+
+		port {
+			ov7740_out: endpoint {
+				remote-endpoint = <&ceu_in>;
+			};
+		};
+	};
 };
 
 /* LCD */
@@ -494,5 +529,33 @@
 		reg = <0xe8208000 0x00001778>,
 		      <0xe820b000 0x00002830>;
 		channel = <0>;
+	};
+};
+
+/* Camera Capture */
+/* Requires the following to be enabled in the kernel:
+     CONFIG_MEDIA_SUPPORT=y
+     CONFIG_MEDIA_CAMERA_SUPPORT=y
+     CONFIG_V4L_PLATFORM_DRIVERS=y
+     CONFIG_VIDEO_RENESAS_CEU=y
+     CONFIG_MEDIA_CONTROLLER=y
+     CONFIG_VIDEO_V4L2_SUBDEV_API=y
+     CONFIG_MEDIA_SUBDRV_AUTOSELECT=n    (NOTE this is =n)
+     CONFIG_VIDEO_OV7740=y
+
+  The board must be modified 16MB before you can use this camera
+  interface.
+*/
+&ceu {
+	pinctrl-names = "default";
+	pinctrl-0 = <&vio_pins>;
+	status = "okay";
+
+	port {
+		ceu_in: endpoint {
+			remote-endpoint = <&ov7740_out>;
+			hsync-active = <1>;
+			vsync-active = <0>;
+		};
 	};
 };
