@@ -1462,10 +1462,6 @@ static int ceu_notify_complete(struct v4l2_async_notifier *notifier)
 	return 0;
 }
 
-static const struct v4l2_async_notifier_operations ceu_notify_ops = {
-	.bound		= ceu_notify_bound,
-	.complete	= ceu_notify_complete,
-};
 
 /*
  * ceu_init_async_subdevs() - Initialize CEU subdevices and async_subdevs in
@@ -1585,7 +1581,7 @@ static int ceu_parse_dt(struct ceu_device *ceudev)
 
 		ceu_sd->mbus_flags = fw_ep.bus.parallel.flags;
 		ceu_sd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-		ceu_sd->asd.match.fwnode =
+		ceu_sd->asd.match.fwnode.fwnode =
 			fwnode_graph_get_remote_port_parent(
 					of_fwnode_handle(ep));
 
@@ -1695,7 +1691,8 @@ static int ceu_probe(struct platform_device *pdev)
 	ceudev->notifier.v4l2_dev	= &ceudev->v4l2_dev;
 	ceudev->notifier.subdevs	= ceudev->asds;
 	ceudev->notifier.num_subdevs	= num_subdevs;
-	ceudev->notifier.ops		= &ceu_notify_ops;
+	ceudev->notifier.bound		= ceu_notify_bound;
+	ceudev->notifier.complete	= ceu_notify_complete;
 	ret = v4l2_async_notifier_register(&ceudev->v4l2_dev,
 					   &ceudev->notifier);
 	if (ret)
