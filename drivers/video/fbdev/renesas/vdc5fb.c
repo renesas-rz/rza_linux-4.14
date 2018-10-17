@@ -818,8 +818,10 @@ static int vdc5fb_init_graphics(struct vdc5fb_priv *priv)
 	vdc5fb_write(priv, GR_VIN_AB1, tmp);
 	vdc5fb_write(priv, GR_VIN_BASE, 0x00FF00);	/* Background color (0-G-B-R) */
 
-	/* Set the LCD margins, other wise the pixels will be cliped
-	  (and background color will show through instead */
+	/* Set the LCD margins, otherwise the pixels will be cliped
+	  (and background color will show through instead) */
+	/* Basically, if the resolution of the VIN is set less than the scalers, the VIN will
+	 * cut off the excess pixel data coming from the scallers. */
 	tmp = GR_GRC_VW(priv->panel_pixel_yres);
 	tmp |= GR_GRC_VS(mode->vsync_len + mode->upper_margin);
 	vdc5fb_write(priv, GR_VIN_AB2, tmp);
